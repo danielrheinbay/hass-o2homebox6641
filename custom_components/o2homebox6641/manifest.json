@@ -1,7 +1,8 @@
 {
   "domain": "o2homebox6641",
   "name": "o2 HomeBox 6641",
-  "documentation": "https://www.home-assistant.io/integrations/o2homebox6641",
+  "documentation": "https://github.com/danielrheinbay/hass-o2homebox6641",
+  "issue_tracker": "https://github.com/danielrheinbay/hass-o2homebox6641/issues",
   "requirements": ["pandas"],
   "dependenies": [],
   "codeowners": ["@danielrheinbay"],
