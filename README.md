@@ -15,7 +15,8 @@ device_tracker:
 
 
 ## Known limitations
-* Does not support password protection; authentication is yet to be implemented.
+* This integration scrapes output of the O2 HomeBox web frontend. There is no API known. This may fail if the web frontend changes (e.g. after a firmware update).
+* This integration does not support password protection; authentication is yet to be implemented.
 * O2 HomeBox 6641 does not support HTTPS, i.e. all traffic is in plain text. This would include authentication if authentication were implemented.
 * Some devices do not provide a proper host name as part of their dhcp request to the o2 HomeBox, e.g. certain Android phones. These devices will not be reported. Try setting the host name in the Android Developer Options.
 * Occasionally, the device overview provided by the O2 HomeBox 6641 may not show any connected wifi devices (maybe if it's low on memory?). This component will gracefully skip invalid data sets. This should not be a problem since Home Assistant will query the status periodically.
