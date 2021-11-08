@@ -85,7 +85,7 @@ class o2HomeBox6641DeviceScanner(DeviceScanner):
             requests.exceptions.Timeout,
             requests.exceptions.ConnectTimeout,
         ):
-            _LOGGER.info("No response from o2 HomeBox 6641")
+            _LOGGER.error("No response from o2 HomeBox 6641.")
             return devices
         
         html_device_overview = request_device_overview.content
@@ -99,9 +99,13 @@ class o2HomeBox6641DeviceScanner(DeviceScanner):
         df_device_overview = df_device_overview.append(df_device_overview_list[1])
         df_mac_addresses = pd.read_html(html_mac_addresses, header=0, index_col=2, encoding="utf-8")[1].head(-2)
 
-        for i in enumerate(df_mac_addresses.index):
-            device = {}
-            device["host"] = df_mac_addresses.iloc[i[0], df_mac_addresses.columns.get_loc('Host-Name')]
-            device["ip"] = df_device_overview.index[i[0]]
-            devices[i[1]] = device
+        if len(df_mac_addresses) == len(df_device_overview):
+            for i in enumerate(df_mac_addresses.index):
+                device = {}
+                device["host"] = df_mac_addresses.iloc[i[0], df_mac_addresses.columns.get_loc('Host-Name')]
+                device["ip"] = df_device_overview.index[i[0]]
+                devices[i[1]] = device
+        else:
+            _LOGGER.error("Received invalid data from o2 HomeBox 6641: count of IP addresses is different from count of MAC addresses.")
+        
         return devices
