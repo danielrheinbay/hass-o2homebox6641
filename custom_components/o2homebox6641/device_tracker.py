@@ -73,6 +73,7 @@ class o2HomeBox6641DeviceScanner(DeviceScanner):
         """Retrieve data from o2 HomeBox 6641 and return parsed result."""
         url_device_overview = f"http://{self.host}/HomeGroup_Survey.html"
         url_device_mac_addresses = f"http://{self.host}/scmacflt.cmd?action=view"
+        
         devices = {}
 
         try:
@@ -86,7 +87,7 @@ class o2HomeBox6641DeviceScanner(DeviceScanner):
             requests.exceptions.ConnectTimeout,
         ):
             _LOGGER.error("No response from o2 HomeBox 6641.")
-            return devices
+            return None
         
         html_device_overview = request_device_overview.content
         html_mac_addresses = request_mac_addresses.content
@@ -106,6 +107,7 @@ class o2HomeBox6641DeviceScanner(DeviceScanner):
                 device["ip"] = df_device_overview.index[i[0]]
                 devices[i[1]] = device
         else:
-            _LOGGER.error("Received invalid data from o2 HomeBox 6641: count of IP addresses is different from count of MAC addresses.")
+            _LOGGER.error("Received invalid data from o2 HomeBox 6641: count of IP addresses differs from count of MAC addresses.")
+            return None
         
         return devices
