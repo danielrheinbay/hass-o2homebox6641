@@ -49,10 +49,7 @@ class o2HomeBox6641DeviceScanner(DeviceScanner):
         """Return the name of the given device or None if we don't know."""
         if not self.last_results:
             return None
-        if device in self.last_results:
-            client = self.last_results[device]
-            return client["host"]
-        return None
+        return self.last_results.get(device)
 
     def _update_info(self):
         """Ensure the information from the o2 HomeBox 6641 router is up to date.
@@ -62,7 +59,7 @@ class o2HomeBox6641DeviceScanner(DeviceScanner):
         if not self.success_init:
             return False
 
-        _LOGGER.info("Loading data from o2 HomeBox 6641")
+        _LOGGER.info("Loading data from o2 HomeBox 6641.")
         if not (data := self.get_o2HomeBox6641_data()):
             return False
 
@@ -71,15 +68,10 @@ class o2HomeBox6641DeviceScanner(DeviceScanner):
 
     def get_o2HomeBox6641_data(self):
         """Retrieve data from o2 HomeBox 6641 and return parsed result."""
-        url_device_overview = f"http://{self.host}/HomeGroup_Survey.html"
         url_device_mac_addresses = f"http://{self.host}/scmacflt.cmd?action=view"
-        
-        devices = {}
 
         try:
-            request_device_overview = requests.get(url_device_overview)
             request_mac_addresses = requests.get(url_device_mac_addresses)
-            request_device_overview.encoding = "utf-8"
             request_mac_addresses.encoding = "utf-8"
         except (
             requests.exceptions.ConnectionError,
@@ -89,25 +81,9 @@ class o2HomeBox6641DeviceScanner(DeviceScanner):
             _LOGGER.error("No response from o2 HomeBox 6641.")
             return None
         
-        html_device_overview = request_device_overview.content
         html_mac_addresses = request_mac_addresses.content
-
-        df_device_overview_list = pd.read_html(html_device_overview, header=0, index_col=1, encoding="utf-8")
-        df_device_overview_list = df_device_overview_list[:2]
-        for df in df_device_overview_list:
-            df.drop(columns=df[2:], inplace=True)
-        df_device_overview = df_device_overview_list[0].head(-1)
-        df_device_overview = df_device_overview.append(df_device_overview_list[1])
         df_mac_addresses = pd.read_html(html_mac_addresses, header=0, index_col=2, encoding="utf-8")[1].head(-2)
+        df_mac_addresses.drop(df_mac_addresses.columns[:2], axis=1, inplace=True)
+        dictionary = df_mac_addresses.to_dict()
 
-        if len(df_mac_addresses) == len(df_device_overview):
-            for i in enumerate(df_mac_addresses.index):
-                device = {}
-                device["host"] = df_mac_addresses.iloc[i[0], df_mac_addresses.columns.get_loc('Host-Name')]
-                device["ip"] = df_device_overview.index[i[0]]
-                devices[i[1]] = device
-        else:
-            _LOGGER.error("Received invalid data from o2 HomeBox 6641: count of IP addresses differs from count of MAC addresses.")
-            return None
-        
-        return devices
+        return dictionary.get("Host-Name")
